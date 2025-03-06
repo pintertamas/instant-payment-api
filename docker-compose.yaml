@@ -21,6 +21,17 @@ services:
       - "9092:9092"
       - "9093:9093"
 
+  kafka-consumer:
+    image: apache/kafka
+    container_name: kafka-consumer
+    depends_on:
+      - kafka
+    volumes:
+      - ./consumer.sh:/consumer.sh
+    environment:
+      TOPIC_TRANSACTION_NOTIFICATION: transaction_notifications
+    command: [ "/bin/sh", "/consumer.sh" ]
+
   postgres:
     image: postgres:15-alpine
     container_name: postgres
