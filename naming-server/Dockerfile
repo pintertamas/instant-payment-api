@@ -8,6 +8,6 @@ RUN mvn clean package
 FROM openjdk:17-alpine
 WORKDIR /app
 
-COPY --from=build /app/target/naming-server-*.jar naming-server.jar
+COPY --from=build /app/target/naming-server-*.jar app.jar
 EXPOSE 8761
-ENTRYPOINT ["java","-jar","/naming-server.jar"]
+ENTRYPOINT ["java","-jar","app.jar"]
