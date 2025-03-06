@@ -6,6 +6,8 @@ import com.tamaspinter.instantpaymentapi.entity.PaymentTransaction;
 import com.tamaspinter.instantpaymentapi.repository.AccountRepository;
 import com.tamaspinter.instantpaymentapi.repository.PaymentTransactionRepository;
 import com.tamaspinter.instantpaymentapi.service.PaymentService;
+import jakarta.persistence.EntityNotFoundException;
+import org.apache.kafka.common.errors.InvalidRequestException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -90,10 +92,10 @@ public class PaymentServiceTest {
 
         PaymentRequest request = new PaymentRequest(1L, 2L, new BigDecimal("25.00"));
 
-        Exception ex = assertThrows(RuntimeException.class, () ->
+        Exception ex = assertThrows(InvalidRequestException.class, () ->
                 paymentService.processPayment(request)
         );
-        assertTrue(ex.getMessage().equals("Insufficient balance"));
+        assertEquals("Insufficient balance", ex.getMessage());
 
         // Verify no transaction was saved and no Kafka message was sent
         verify(paymentTransactionRepository, never()).save(any(PaymentTransaction.class));
@@ -110,10 +112,10 @@ public class PaymentServiceTest {
 
         PaymentRequest request = new PaymentRequest(1L, 2L, new BigDecimal("25.00"));
 
-        Exception ex = assertThrows(RuntimeException.class, () ->
+        Exception ex = assertThrows(EntityNotFoundException.class, () ->
                 paymentService.processPayment(request)
         );
-        assertTrue(ex.getMessage().equals("From Account not found"));
+        assertEquals("From Account not found", ex.getMessage());
 
         // Verify nothing else happened
         verify(accountRepository, never()).save(any(Account.class));
@@ -134,10 +136,10 @@ public class PaymentServiceTest {
 
         PaymentRequest request = new PaymentRequest(1L, 2L, new BigDecimal("25.00"));
 
-        Exception ex = assertThrows(RuntimeException.class, () ->
+        Exception ex = assertThrows(EntityNotFoundException.class, () ->
                 paymentService.processPayment(request)
         );
-        assertTrue(ex.getMessage().equals("To Account not found"));
+        assertEquals("To Account not found", ex.getMessage());
 
         verify(paymentTransactionRepository, never()).save(any(PaymentTransaction.class));
         verify(kafkaTemplate, never()).send(anyString(), anyString());
@@ -171,8 +173,8 @@ public class PaymentServiceTest {
         assertEquals(new BigDecimal("100.00"), fromAccount.getBalance());
         assertEquals(new BigDecimal("50.00"), toAccount.getBalance());
 
-        assertTrue(zeroAmountException.getMessage().equals("Amount must be positive"));
-        assertTrue(negativeAmountException.getMessage().equals("Amount must be positive"));
+        assertEquals("Amount must be positive", zeroAmountException.getMessage());
+        assertEquals("Amount must be positive", negativeAmountException.getMessage());
         verify(kafkaTemplate, never()).send(anyString(), anyString());
     }
 
@@ -217,10 +219,10 @@ public class PaymentServiceTest {
 
         PaymentRequest request = new PaymentRequest(1L, 1L, new BigDecimal("10.00"));
 
-        Exception ex = assertThrows(RuntimeException.class, () ->
+        Exception ex = assertThrows(InvalidRequestException.class, () ->
                 paymentService.processPayment(request)
         );
-        assertTrue(ex.getMessage().equals("Cannot transfer to the same account"));
+        assertEquals("Cannot transfer to the same account", ex.getMessage());
 
         verify(paymentTransactionRepository, never()).save(any(PaymentTransaction.class));
         verify(kafkaTemplate, never()).send(anyString(), anyString());
