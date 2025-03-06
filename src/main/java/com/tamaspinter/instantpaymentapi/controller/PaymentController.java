@@ -6,6 +6,7 @@ import com.tamaspinter.instantpaymentapi.service.PaymentService;
 import jakarta.persistence.EntityNotFoundException;
 import org.apache.kafka.common.errors.InvalidRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,6 +26,8 @@ public class PaymentController {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (EntityNotFoundException e) {
             return ResponseEntity.notFound().build();
+        } catch (DataAccessResourceFailureException e) {
+            return ResponseEntity.internalServerError().body("Database error");
         } catch (RuntimeException e) {
             return ResponseEntity.internalServerError().build();
         }

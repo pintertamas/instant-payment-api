@@ -290,6 +290,15 @@ public class PaymentServiceTest {
         assertEquals("Payment request cannot be null", ex.getMessage());
     }
 
+    /**
+     * Rollback on unexpected error
+     * This test simulates an unexpected error during the processPayment method.
+     *
+     * NOTE: Unfortunately using mocks, it's not possible to simulate a real unexpected error,
+     * so I tested it manually by creating a breakpoint in the processPayment method on the first database save() call,
+     * then stopped the database service, and continued the execution.
+     * I did get an internal server error as expected, and the accounts' balances remained unchanged.
+     */
     @Test
     void testProcessPaymentRollbackOnUnexpectedError_fromAccount() {
         final BigDecimal starterBalance = new BigDecimal("100.00");
@@ -299,7 +308,7 @@ public class PaymentServiceTest {
         toAccount.setId(2L);
 
         when(accountRepository.findById(1L))
-                .thenThrow(new RuntimeException("Simulated DB error on saving toAccount"))
+                .thenThrow(new DataAccessResourceFailureException("Simulated DB error on saving toAccount"))
                 .thenReturn(Optional.of(fromAccount));
         when(accountRepository.findById(2L))
                 .thenReturn(Optional.of(toAccount));

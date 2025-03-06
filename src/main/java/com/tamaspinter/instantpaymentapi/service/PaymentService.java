@@ -7,6 +7,7 @@ import com.tamaspinter.instantpaymentapi.repository.AccountRepository;
 import com.tamaspinter.instantpaymentapi.repository.PaymentTransactionRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.apache.kafka.common.errors.InvalidRequestException;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,7 +30,7 @@ public class PaymentService {
     }
 
     @Transactional
-    public PaymentTransaction processPayment(PaymentRequest request) {
+    public PaymentTransaction processPayment(PaymentRequest request) throws DataAccessResourceFailureException {
         if (request == null) {
             throw new IllegalArgumentException("Payment request cannot be null");
         }
@@ -52,13 +53,19 @@ public class PaymentService {
         fromAccount.setBalance(fromAccount.getBalance().subtract(amount));
         toAccount.setBalance(toAccount.getBalance().add(amount));
 
-        accountRepository.save(fromAccount);
-        accountRepository.save(toAccount);
+        PaymentTransaction transaction;
+        try {
+            accountRepository.save(fromAccount);
+            accountRepository.save(toAccount);
 
-        PaymentTransaction transaction = new PaymentTransaction(
-                fromAccount.getId(), toAccount.getId(), amount
-        );
-        transaction = paymentTransactionRepository.save(transaction);
+            transaction = new PaymentTransaction(
+                    fromAccount.getId(), toAccount.getId(), amount
+            );
+            transaction = paymentTransactionRepository.save(transaction);
+        } catch (Exception e) {
+            throw new DataAccessResourceFailureException("Failed to process payment", e);
+        }
+
 
         String message = String.format(
                 "Payment of %s from account %d to account %d succeeded.",
