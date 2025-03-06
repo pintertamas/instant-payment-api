@@ -59,7 +59,7 @@ services:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
 
   naming-server:
-    build: naming-server
+    build: ./naming-server .
     ports:
       - "8761:8761"
 volumes:
