@@ -1,6 +1,5 @@
 version: '3.8'
 services:
-<<<<<<< HEAD
   api-gateway:
     build: ./api-gateway .
     container_name: api-gateway
@@ -17,8 +16,6 @@ services:
     ports:
       - "8761:8761"
 
-=======
->>>>>>> instant-payment-api/master
   kafka:
     image: apache/kafka:latest
     container_name: broker
@@ -46,11 +43,7 @@ services:
     depends_on:
       - kafka
     volumes:
-<<<<<<< HEAD
       - ./instant-payment-api/consumer.sh:/consumer.sh
-=======
-      - ./consumer.sh:/consumer.sh
->>>>>>> instant-payment-api/master
     environment:
       TOPIC_TRANSACTION_NOTIFICATION: transaction_notifications
     command: [ "/bin/sh", "/consumer.sh" ]
@@ -69,30 +62,18 @@ services:
       - "5432:5432"
 
   payment-app:
-<<<<<<< HEAD
     build: ./instant-payment-api .
     depends_on:
       - postgres
       - kafka
     #ports:
     #  - "8081:8080"
-=======
-    build: .
-    depends_on:
-      - postgres
-      - kafka
-    ports:
-      - "8080:8080"
->>>>>>> instant-payment-api/master
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/instant_db
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-<<<<<<< HEAD
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://naming-server:8761/eureka/
-=======
->>>>>>> instant-payment-api/master
 
 volumes:
   postgres-data:
