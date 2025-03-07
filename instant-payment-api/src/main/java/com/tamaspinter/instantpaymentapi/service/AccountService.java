@@ -1,11 +1,15 @@
 package com.tamaspinter.instantpaymentapi.service;
 
 import com.tamaspinter.instantpaymentapi.dto.AccountRequest;
+import com.tamaspinter.instantpaymentapi.dto.DepositRequest;
 import com.tamaspinter.instantpaymentapi.entity.Account;
 import com.tamaspinter.instantpaymentapi.repository.AccountRepository;
+import jakarta.ws.rs.NotFoundException;
 import org.springframework.stereotype.Service;
 
+import javax.security.auth.login.AccountNotFoundException;
 import java.math.BigDecimal;
+import java.util.Optional;
 
 @Service
 public class AccountService {
@@ -31,8 +35,22 @@ public class AccountService {
         return accountRepository.save(newAccount);
     }
 
-    public Account getAccountById(Long id) {
-        return accountRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Account not found"));
+    public Account getAccountById(Long id) throws AccountNotFoundException {
+        Optional<Account> account = accountRepository.findById(id);
+        if (account.isPresent()) {
+            return account.get();
+        } else {
+            throw new AccountNotFoundException("Account not found");
+        }
+    }
+
+    public Account deposit(DepositRequest request) throws AccountNotFoundException {
+        Account account = getAccountById(request.accountId());
+        if (request.amount().compareTo(account.getBalance()) < 0) {
+            throw new IllegalArgumentException("Amount must be positive");
+        }
+        BigDecimal amount = request.amount();
+        account.setBalance(account.getBalance().add(amount));
+        return accountRepository.save(account);
     }
 }
