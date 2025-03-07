@@ -43,7 +43,7 @@ services:
     depends_on:
       - kafka
     volumes:
-      - ./instant-payment-api/consumer.sh:/consumer.sh
+      - ./consumer.sh:/consumer.sh
     environment:
       TOPIC_TRANSACTION_NOTIFICATION: transaction_notifications
     command: [ "/bin/sh", "/consumer.sh" ]
@@ -63,11 +63,11 @@ services:
 
   payment-app:
     build: ./instant-payment-api .
+    deploy:
+      replicas: 2
     depends_on:
       - postgres
       - kafka
-    #ports:
-    #  - "8081:8080"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/instant_db
       SPRING_DATASOURCE_USERNAME: postgres
