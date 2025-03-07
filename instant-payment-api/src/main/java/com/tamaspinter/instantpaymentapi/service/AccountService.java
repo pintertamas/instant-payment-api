@@ -46,7 +46,7 @@ public class AccountService {
 
     public Account deposit(DepositRequest request) throws AccountNotFoundException {
         Account account = getAccountById(request.accountId());
-        if (request.amount().compareTo(account.getBalance()) < 0) {
+        if (request.amount().intValue() <= 0) {
             throw new IllegalArgumentException("Amount must be positive");
         }
         BigDecimal amount = request.amount();
